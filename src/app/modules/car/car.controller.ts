@@ -4,7 +4,7 @@ import { CarService } from './car.service';
 // Function to create a new car
 const carCreateFun = async (req: Request, res: Response): Promise<void> => {
   try {
-    const carData = req.body;
+    const carData = req.body.car;
 
     if (!carData) {
       res.status(400).json({
@@ -32,9 +32,21 @@ const carCreateFun = async (req: Request, res: Response): Promise<void> => {
 // Function to get all cars by a search term
 const getAllCarFun = async (req: Request, res: Response): Promise<void> => {
   try {
+    // console.log(req.query);
     const { searchTerm } = req.query;
 
-    if (!searchTerm || typeof searchTerm !== 'string') {
+    if (!searchTerm) {
+      const result = await CarService.getAllCars();
+
+      res.status(200).json({
+        message: 'Cars retrieved successfully.',
+        success: true,
+        data: result,
+      });
+      return;
+    }
+
+    if (typeof searchTerm !== 'string') {
       res.status(400).json({
         message: 'Invalid or missing searchTerm query parameter.',
         success: false,
@@ -42,10 +54,18 @@ const getAllCarFun = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await CarService.getAllCars(searchTerm);
-
+    const result = await CarService.getMatchedCars(searchTerm);
+    // console.log(result.length);
+    if (!result.length) {
+      res.status(404).json({
+        message: 'Search Mismatched, no such data available in DB.',
+        success: true,
+        data: result,
+      });
+      return;
+    }
     res.status(200).json({
-      message: 'Cars retrieved successfully.',
+      message: 'Matched Cars retrieved successfully.',
       success: true,
       data: result,
     });

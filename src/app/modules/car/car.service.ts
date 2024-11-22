@@ -6,7 +6,12 @@ const postCarDataIntoDB = async (carData: TCar) => {
   return result;
 };
 
-const getAllCars = async (searchTerm: string) => {
+const getAllCars = async () => {
+  const result = await CarModel.find();
+  return result;
+};
+
+const getMatchedCars = async (searchTerm: string) => {
   const result = await CarModel.find({
     $or: [
       { brand: { $regex: searchTerm, $options: 'i' } },
@@ -19,5 +24,6 @@ const getAllCars = async (searchTerm: string) => {
 
 export const CarService = {
   postCarDataIntoDB,
+  getMatchedCars,
   getAllCars,
 };
