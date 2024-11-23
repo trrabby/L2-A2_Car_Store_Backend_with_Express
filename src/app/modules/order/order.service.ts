@@ -7,7 +7,7 @@ const postOrderDataIntoDB = async (orderData: TOrder) => {
 };
 
 const getAllOrders = async () => {
-  const result = await OrderModel.find();
+  const result = await OrderModel.find().sort({ _id: -1 });
   return result;
 };
 

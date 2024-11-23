@@ -7,79 +7,92 @@ const orderCreateFun = async (req: Request, res: Response): Promise<void> => {
   try {
     const orderData = req.body;
 
-    if (!orderData) {
+    if (!orderData || !orderData.car || !orderData.quantity) {
       res.status(400).json({
-        message: 'Order data is required.',
+        message:
+          'Order data is incomplete. Please provide all required fields.',
         status: false,
       });
       return;
-    } else {
-      const orderedCarId = req.body?.car;
-      const orderedCarQty = req.body?.quantity;
-
-      const carsExistingData = await CarService.getACars(orderedCarId);
-
-      if (carsExistingData[0].quantity < 1) {
-        res.status(501).json({
-          message: 'Stock unavailable. Please choose other products',
-          status: true,
-        });
-        return;
-      }
-
-      if (carsExistingData) {
-        const qtyAfterOrder = carsExistingData[0].quantity - orderedCarQty;
-
-        if (qtyAfterOrder < 0) {
-          res.status(501).json({
-            message:
-              'You order exceeds the available stock. Please order available stock',
-            status: true,
-          });
-
-          return;
-        }
-
-        if (qtyAfterOrder <= 0) {
-          const inStock = false;
-
-          const updateDoc = {
-            $set: { ...carsExistingData, quantity: 0, inStock },
-          };
-
-          const result = await CarService.updateACarData(
-            { _id: orderedCarId },
-            updateDoc,
-          );
-          res.status(201).json({
-            message:
-              'Order created successfully. Onwards orders can not be processed due to unavailable stock',
-            status: true,
-            data: result,
-          });
-
-          return;
-        }
-
-        const updateDoc = {
-          $set: { ...carsExistingData, quantity: qtyAfterOrder, inStock: true },
-        };
-
-        await CarService.updateACarData({ _id: orderedCarId }, updateDoc);
-      }
-
-      const result = await OrderService.postOrderDataIntoDB(orderData);
-      res.status(201).json({
-        message: 'Order created successfully.',
-        status: true,
-        data: result,
-      });
     }
+
+    const {
+      car: orderedCarId,
+      quantity: orderedCarQty,
+      ...otherOrderData
+    } = orderData;
+
+    const carData = await CarService.getACars(orderedCarId);
+
+    if (!carData.length) {
+      res.status(404).json({
+        message: 'Car not found in the database.',
+        status: false,
+      });
+      return;
+    }
+
+    const car = carData[0];
+
+    if (car.quantity < 1) {
+      res.status(400).json({
+        message: 'Stock unavailable. Please choose another product.',
+        status: false,
+      });
+      return;
+    }
+
+    const qtyAfterOrder = car.quantity - orderedCarQty;
+
+    if (qtyAfterOrder < 0) {
+      res.status(400).json({
+        message: 'Ordered quantity exceeds available stock.',
+        status: false,
+      });
+      return;
+    }
+
+    // Construct the updated car document
+    const inStock = qtyAfterOrder > 0;
+    const updatedCarData = {
+      ...car,
+      quantity: qtyAfterOrder,
+      inStock,
+      updatedAt: new Date(), // Add updatedAt timestamp
+    };
+
+    const carUpdateDoc = {
+      $set: updatedCarData,
+    };
+
+    // Update car stock in the database
+    await CarService.updateACarData({ _id: orderedCarId }, carUpdateDoc);
+
+    // Add `createdAt` and `updatedAt` fields to the order
+    const completeOrderData = {
+      ...otherOrderData,
+      car: orderedCarId,
+      quantity: orderedCarQty,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const orderResult =
+      await OrderService.postOrderDataIntoDB(completeOrderData);
+
+    res.status(201).json({
+      message: 'Order created successfully.',
+      status: true,
+      data: orderResult,
+    });
+    return;
   } catch (err: any) {
     res.status(500).json({
       message: 'Error creating order.',
+      status: false,
       error: err.message,
     });
+    return;
   }
 };
 

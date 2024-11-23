@@ -7,7 +7,7 @@ const postCarDataIntoDB = async (carData: TCar) => {
 };
 
 const getAllCars = async () => {
-  const result = await CarModel.find();
+  const result = await CarModel.find().sort({ _id: -1 });
   return result;
 };
 
@@ -18,7 +18,7 @@ const getMatchedCars = async (searchTerm: string) => {
       { model: { $regex: searchTerm, $options: 'i' } },
       { category: { $regex: searchTerm, $options: 'i' } },
     ],
-  });
+  }).sort({ _id: -1 });
   return result;
 };
 
