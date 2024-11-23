@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongoose';
 import { TCar } from './car.interface';
 import { CarModel } from './car.model';
 
@@ -23,8 +22,21 @@ const getMatchedCars = async (searchTerm: string) => {
   return result;
 };
 
-const getACars = async (id: ObjectId) => {
-  const result = await CarModel.find({_id: id});
+const getACars = async (id: string) => {
+  const result = await CarModel.find({ _id: id });
+  return result;
+};
+
+const updateACarData = async (
+  prevIdData: { _id: string },
+  updatedData: object,
+) => {
+  const result = await CarModel.updateOne(prevIdData, updatedData);
+  return result;
+};
+
+const deleteACarData = async (id: string) => {
+  const result = await CarModel.deleteOne({ _id: id });
   return result;
 };
 
@@ -32,4 +44,7 @@ export const CarService = {
   postCarDataIntoDB,
   getMatchedCars,
   getAllCars,
+  getACars,
+  updateACarData,
+  deleteACarData,
 };
