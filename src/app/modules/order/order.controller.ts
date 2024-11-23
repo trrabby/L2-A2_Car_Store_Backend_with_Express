@@ -103,9 +103,8 @@ const getAllOrdersFun = async (req: Request, res: Response): Promise<void> => {
 const getAnOrderFun = async (req: Request, res: Response): Promise<void> => {
   try {
     const { orderId } = req.params;
-
     const result = await OrderService.getAnOrder(orderId);
-    if (result.length) {
+    if (result) {
       res.status(200).json({
         message: 'Order retrieved successfully.',
         status: true,

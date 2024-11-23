@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/', orderController.orderCreateFun);
 router.get('/', orderController.getAllOrdersFun);
-router.get('/:carId', orderController.getAnOrderFun);
+router.get('/:orderId', orderController.getAnOrderFun);
 
 export const orderRoute = router;
