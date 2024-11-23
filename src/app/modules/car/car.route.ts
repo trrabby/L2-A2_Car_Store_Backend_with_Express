@@ -6,4 +6,5 @@ const router = express.Router();
 router.post('/', carController.carCreateFun);
 router.get('/', carController.getAllCarFun);
 
+
 export const carRoute = router;

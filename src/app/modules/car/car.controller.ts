@@ -77,6 +77,15 @@ const getAllCarFun = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const getACarFun = async(req:Request, res: Response): Promise<void>=>{
+  try{
+    const carId= req.params
+    console.log(carId)
+  }catch(err){
+    console.log(err)
+  }
+}
+
 export const carController = {
   carCreateFun,
   getAllCarFun,

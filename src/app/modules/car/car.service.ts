@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongoose';
 import { TCar } from './car.interface';
 import { CarModel } from './car.model';
 
@@ -19,6 +20,11 @@ const getMatchedCars = async (searchTerm: string) => {
       { category: { $regex: searchTerm, $options: 'i' } },
     ],
   });
+  return result;
+};
+
+const getACars = async (id: ObjectId) => {
+  const result = await CarModel.find({_id: id});
   return result;
 };
 
