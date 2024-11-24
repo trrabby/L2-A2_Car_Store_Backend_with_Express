@@ -1,13 +1,31 @@
 import { Request, Response } from 'express';
 import { OrderService } from './order.service';
 import { CarService } from '../car/car.service';
+import orderValidationSchema from './order.validation';
 
 // Function to create a new order
 const orderCreateFun = async (req: Request, res: Response): Promise<void> => {
   try {
     const orderData = req.body;
 
-    if (!orderData || !orderData.car || !orderData.quantity) {
+    const ZodParsedData = orderValidationSchema.safeParse(orderData);
+    if (!ZodParsedData.success) {
+      // Extract and format the error messages
+      const errorMessages = ZodParsedData.error.errors.map(
+        (err) => err.message,
+      );
+      res.status(400).json({
+        message: 'Validation Error',
+        errors: errorMessages,
+      });
+      return;
+    }
+
+    if (
+      !ZodParsedData.data ||
+      !ZodParsedData.data.car ||
+      !ZodParsedData.data.quantity
+    ) {
       res.status(400).json({
         message:
           'Order data is incomplete. Please provide all required fields.',
@@ -26,7 +44,7 @@ const orderCreateFun = async (req: Request, res: Response): Promise<void> => {
 
     if (!carData.length) {
       res.status(404).json({
-        message: 'Car not found in the database.',
+        message: 'Car could not found in the database.',
         status: false,
       });
       return;
@@ -55,7 +73,6 @@ const orderCreateFun = async (req: Request, res: Response): Promise<void> => {
     // Construct the updated car document
     const inStock = qtyAfterOrder > 0;
     const updatedCarData = {
-      ...car,
       quantity: qtyAfterOrder,
       inStock,
       updatedAt: new Date(), // Add updatedAt timestamp
@@ -139,7 +156,10 @@ const getAnOrderFun = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const getTotalRevenueFun = async (req: Request, res: Response): Promise<void> => {
+const getTotalRevenueFun = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const result = await OrderService.getRevenue();
     res.status(200).json({
@@ -155,10 +175,9 @@ const getTotalRevenueFun = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-
 export const orderController = {
   orderCreateFun,
   getAllOrdersFun,
   getAnOrderFun,
-  getTotalRevenueFun
+  getTotalRevenueFun,
 };

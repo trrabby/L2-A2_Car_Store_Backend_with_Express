@@ -1,12 +1,26 @@
 import { Request, Response } from 'express';
 import { CarService } from './car.service';
+import carValidationSchema from './car.validation';
 
 // Function to create a new car
 const carCreateFun = async (req: Request, res: Response): Promise<void> => {
   try {
     const carData = req.body;
 
-    if (!carData) {
+    const ZodParsedData = carValidationSchema.safeParse(carData);
+    if (!ZodParsedData.success) {
+      // Extract and format the error messages
+      const errorMessages = ZodParsedData.error.errors.map(
+        (err) => err.message,
+      );
+      res.status(400).json({
+        message: 'Validation Error',
+        errors: errorMessages,
+      });
+      return;
+    }
+
+    if (!ZodParsedData) {
       res.status(400).json({
         message: 'Car data is required.',
         status: false,
@@ -14,7 +28,7 @@ const carCreateFun = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await CarService.postCarDataIntoDB(carData);
+    const result = await CarService.postCarDataIntoDB(ZodParsedData.data);
 
     res.status(201).json({
       message: 'Car created successfully.',

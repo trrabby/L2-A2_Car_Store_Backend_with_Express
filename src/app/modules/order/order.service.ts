@@ -16,14 +16,14 @@ const getAnOrder = async (id: string) => {
   return result;
 };
 
-const getRevenue = async () =>{
+const getRevenue = async () => {
   const totalRevenuePipeline = [
     {
       $group: {
         _id: null, // Grouping all documents together
         totalRevenue: {
           $sum: {
-            $multiply: ["$quantity", "$totalPrice"], // Calculate revenue per order
+            $multiply: ['$quantity', '$totalPrice'], // Calculate revenue per order
           },
         },
       },
@@ -35,14 +35,14 @@ const getRevenue = async () =>{
       },
     },
   ];
-   
+
   const result = await OrderModel.aggregate(totalRevenuePipeline);
-  return result
-}
+  return result;
+};
 
 export const OrderService = {
   postOrderDataIntoDB,
   getAllOrders,
   getAnOrder,
-  getRevenue
+  getRevenue,
 };
